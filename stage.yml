@@ -3,6 +3,8 @@ version: '3'
 volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
+  apps_staticfiles: {}
+  apps_mediafiles: {}
   production_traefik: {}
 
 services:
@@ -15,9 +17,12 @@ services:
     depends_on:
       - postgres
       - redis
+    volumes:
+      - apps_staticfiles:/app/staticfiles
+      - apps_mediafiles:/app/media
     env_file:
-      - ./.envs/.production/.django
-      - ./.envs/.production/.postgres
+      - ./.envs/.stage/.django
+      - ./.envs/.stage/.postgres
     command: /start
 
   postgres:
@@ -29,7 +34,7 @@ services:
       - production_postgres_data:/var/lib/postgresql/data
       - production_postgres_data_backups:/backups
     env_file:
-      - ./.envs/.production/.postgres
+      - ./.envs/.stage/.postgres
 
   redis:
     image: redis:6
@@ -49,22 +54,22 @@ services:
     image: apps_production_flower
     command: /start-flower
 
-  # awscli:
-  #   build:
-  #     context: .
-  #     dockerfile: ./compose/production/aws/Dockerfile
-  #   env_file:
-  #     - ./.envs/.production/.django
-  #   volumes:
-  #     - production_postgres_data_backups:/backups:z
-
-caddy:
+  caddy:
       image: caddy:2.7-alpine
       ports:
         - 80:80
         - 9443:443
+        - 5555:5555
       volumes:
         - ./conf/Caddyfile:/etc/caddy/Caddyfile:ro
         - ./conf/certs:/certs
       restart: unless-stopped
       container_name: django_apps_caddy
+  # awscli:
+  #   build:
+  #     context: .
+  #     dockerfile: ./compose/production/aws/Dockerfile
+  #   env_file:
+  #     - ./.envs/.stage/.django
+  #   volumes:
+  #     - production_postgres_data_backups:/backups:z

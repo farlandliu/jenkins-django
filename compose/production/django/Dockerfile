@@ -8,6 +8,10 @@ FROM python as python-build-stage
 
 ARG BUILD_ENVIRONMENT=production
 
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+RUN sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
@@ -34,6 +38,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV BUILD_ENV ${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
+
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+RUN sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 
 RUN addgroup --system django \
     && adduser --system --ingroup django django
@@ -83,9 +91,11 @@ RUN chmod +x /start-flower
 
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
-
+# mk staticfiles dir
+RUN mkdir -p /app/staticfiles
+RUN mkdir -p /app/media
 # make django owner of the WORKDIR directory as well.
-RUN chown django:django ${APP_HOME}
+RUN chown django:django ${APP_HOME} -R
 
 USER django
 
