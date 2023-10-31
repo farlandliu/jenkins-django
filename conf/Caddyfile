@@ -1,0 +1,9 @@
+:443 {
+  tls /certs/django.local.crt /certs/django.local.key
+  reverse_proxy http://django:5000
+}
+
+:5555 {
+  tls /certs/django.local.crt /certs/django.local.key
+  reverse_proxy http://flower:5555
+}
